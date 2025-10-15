@@ -30,6 +30,11 @@ public class GlobalExceptionHandler {
         return buildResponse(HttpStatus.NOT_FOUND, "Health record not found", ex.getMessage());
     }
 
+    @ExceptionHandler(AnomalyNotFoundException.class)
+    public ResponseEntity<Map<String, Object>> handleAnomalyNotFound(AnomalyNotFoundException ex) {
+        return buildResponse(HttpStatus.NOT_FOUND, "Anomaly not found", ex.getMessage());
+    }
+
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<Map<String, Object>> handleValidation(MethodArgumentNotValidException ex) {
         String message = ex.getBindingResult().getFieldErrors().stream()

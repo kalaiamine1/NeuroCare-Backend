@@ -27,6 +27,8 @@ public class HealthRecordServiceImpl implements IHealthRecordService {
     private final HealthRecordRepository healthRecordRepository;
     private final ChildRepository childRepository;
     private final ModelMapper modelMapper;
+    // Injection du service de détection d'anomalies
+    private final IAnomalyDetectionService anomalyDetectionService;
 
     @Override
     public HealthRecordResponseDTO addHealthRecord(int childId, HealthRecordRequestDTO dto) {
@@ -34,8 +36,19 @@ public class HealthRecordServiceImpl implements IHealthRecordService {
                 .orElseThrow(() -> new ChildNotFoundException("No child found with id " + childId));
         HealthRecord record = modelMapper.map(dto, HealthRecord.class);
         record.setChild(child);
-        HealthRecord saved = healthRecordRepository.save(record);
+        HealthRecord saved = addHealthRecord(record); // délégation à la méthode entité
         return toResponseDTO(saved);
+    }
+
+    /**
+     * Ajoute un enregistrement de santé et déclenche la détection d'anomalies.
+     * Ne modifie pas l'API publique de l'interface, mais peut être utilisée en interne.
+     */
+    public HealthRecord addHealthRecord(HealthRecord record) {
+        HealthRecord saved = healthRecordRepository.save(record);
+        // Déclencher la détection d'anomalies immédiatement après la sauvegarde
+        anomalyDetectionService.detectAnomaliesForRecord(saved);
+        return saved;
     }
 
     @Override
@@ -84,4 +97,3 @@ public class HealthRecordServiceImpl implements IHealthRecordService {
         return dto;
     }
 }
-
