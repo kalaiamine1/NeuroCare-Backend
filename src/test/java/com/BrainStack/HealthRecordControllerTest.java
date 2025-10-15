@@ -11,9 +11,7 @@ import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
-import org.springframework.boot.test.context.TestConfiguration;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Import;
+import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 
@@ -26,21 +24,12 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @WebMvcTest(HealthRecordController.class)
-@Import(HealthRecordControllerTest.TestConfig.class)
 class HealthRecordControllerTest {
-
-    @TestConfiguration
-    static class TestConfig {
-        @Bean
-        IHealthRecordService healthRecordService() {
-            return Mockito.mock(IHealthRecordService.class);
-        }
-    }
 
     @Autowired
     private MockMvc mockMvc;
 
-    @Autowired
+    @MockBean
     private IHealthRecordService healthRecordService;
 
     @Autowired

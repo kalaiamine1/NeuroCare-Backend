@@ -4,6 +4,7 @@ import com.BrainStack.Entity.HealthRecord;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
+import java.time.LocalDate;
 import java.util.List;
 
 /**
@@ -17,5 +18,9 @@ public interface HealthRecordRepository extends JpaRepository<HealthRecord, Long
      * @return liste des enregistrements
      */
     List<HealthRecord> findByChildId(int childId);
-}
 
+    /**
+     * Récupère les enregistrements d'un enfant dans une plage de dates inclusive.
+     */
+    List<HealthRecord> findByChildIdAndDateBetween(int childId, LocalDate start, LocalDate end);
+}
