@@ -35,3 +35,5 @@ build/
 # Environnements virtuels Python
 venv/
 */venv/
+# Ignorer l'environnement Python
+#src/main/java/com/BrainStack/IA/venv/
