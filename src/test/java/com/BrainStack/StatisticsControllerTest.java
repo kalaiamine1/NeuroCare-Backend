@@ -48,7 +48,7 @@ class StatisticsControllerTest {
                 StatsPointDTO.builder().date("2025-10-11").averageSleepHours(7.5).averageWeight(25.1).averageHeartRate(82.0).averageSteps(8000.0).build()
         );
         Mockito.when(statisticsService.getWeeklyStats(1)).thenReturn(payload);
-        mockMvc.perform(get("/api/v1/api/health-records/child/1/weekly"))
+        mockMvc.perform(get("/health-records/child/1/weekly"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$[0].date").value("2025-10-10"))
                 .andExpect(jsonPath("$[0].averageSleepHours").value(8.0));
@@ -60,7 +60,7 @@ class StatisticsControllerTest {
                 StatsPointDTO.builder().date("2025-07-01").averageSleepHours(8.0).averageWeight(24.9).averageHeartRate(79.0).averageSteps(6500.0).build()
         );
         Mockito.when(statisticsService.getMonthlyStats(1)).thenReturn(payload);
-        mockMvc.perform(get("/api/v1/api/health-records/child/1/monthly"))
+        mockMvc.perform(get("/health-records/child/1/monthly"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$[0].date").value("2025-07-01"));
     }
@@ -72,7 +72,7 @@ class StatisticsControllerTest {
                 TimeSeriesPointDTO.builder().date("2025-10-11").value(25.1).build()
         );
         Mockito.when(statisticsService.getChartSeries(1, "weight", "6m")).thenReturn(payload);
-        mockMvc.perform(get("/api/v1/api/health-records/child/1/chart")
+        mockMvc.perform(get("/health-records/child/1/chart")
                         .param("param", "weight")
                         .param("period", "6m")
                         .accept(MediaType.APPLICATION_JSON))
@@ -84,7 +84,7 @@ class StatisticsControllerTest {
     void getChartSeries_invalidParam_returnsBadRequest() throws Exception {
         Mockito.when(statisticsService.getChartSeries(1, "unknown", "7d"))
                 .thenThrow(new IllegalArgumentException("Invalid param 'unknown'. Expected one of sleep, weight, heartRate, steps"));
-        mockMvc.perform(get("/api/v1/api/health-records/child/1/chart")
+        mockMvc.perform(get("/health-records/child/1/chart")
                         .param("param", "unknown")
                         .param("period", "7d"))
                 .andExpect(status().isBadRequest())
