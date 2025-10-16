@@ -12,7 +12,6 @@ import org.springframework.stereotype.Repository;
 
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Optional;
 
 @Repository
 public interface AppointmentRepository extends JpaRepository<Appointment, Long> {
@@ -58,6 +57,16 @@ public interface AppointmentRepository extends JpaRepository<Appointment, Long> 
     List<Appointment> findConflicts(@Param("professionalId") Long professionalId,
                                     @Param("startTime") LocalDateTime startTime,
                                     @Param("endTime") LocalDateTime endTime);
+
+    /**
+     * Trouve les conflits d'horaires pour un parent (même parent, horaires qui se chevauchent)
+     */
+    @Query("SELECT a FROM Appointment a WHERE a.parentId = :parentId " +
+            "AND a.status != 'CANCELLED' " +
+            "AND ((a.startTime < :endTime AND a.endTime > :startTime))")
+    List<Appointment> findParentConflicts(@Param("parentId") Long parentId,
+                                          @Param("startTime") LocalDateTime startTime,
+                                          @Param("endTime") LocalDateTime endTime);
 
     /**
      * Trouve les rendez-vous à venir

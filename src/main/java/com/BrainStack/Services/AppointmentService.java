@@ -45,6 +45,9 @@ public class AppointmentService {
 
         // Vérification des conflits d'horaires
         checkForConflicts(request.getProfessionalId(), request.getStartTime(), request.getEndTime());
+        
+        // Vérification des conflits de parent (même parent, horaires qui se chevauchent)
+        checkForParentConflicts(request.getParentId(), request.getStartTime(), request.getEndTime());
 
         // Création de l'entité
         Appointment appointment = Appointment.builder()
@@ -152,9 +155,10 @@ public class AppointmentService {
 
         if (request.getStartTime() != null && request.getEndTime() != null) {
             // Vérifier les conflits si les horaires ont changé
-            if (!appointment.getStartTime().equals(request.getStartTime()) ||
-                    !appointment.getEndTime().equals(request.getEndTime())) {
+            if (!appointment.getStartTime().equals(request.getStartTime()) || 
+                !appointment.getEndTime().equals(request.getEndTime())) {
                 checkForConflicts(appointment.getProfessionalId(), request.getStartTime(), request.getEndTime());
+                checkForParentConflicts(appointment.getParentId(), request.getStartTime(), request.getEndTime());
             }
             appointment.setStartTime(request.getStartTime());
             appointment.setEndTime(request.getEndTime());
@@ -266,6 +270,19 @@ public class AppointmentService {
     }
 
     /**
+     * Détecte les conflits d'horaires pour un parent
+     */
+    public List<AppointmentDTO> detectParentConflicts(Long parentId, LocalDateTime startTime, LocalDateTime endTime) {
+        log.info("Détection des conflits pour le parent ID: {}", parentId);
+
+        List<Appointment> conflicts = appointmentRepository.findParentConflicts(parentId, startTime, endTime);
+
+        return conflicts.stream()
+                .map(appointmentMapper::toDTO)
+                .collect(Collectors.toList());
+    }
+
+    /**
      * Valide la demande de création
      */
     private void validateCreateRequest(CreateAppointmentRequest request) {
@@ -295,6 +312,18 @@ public class AppointmentService {
         if (!conflicts.isEmpty()) {
             log.warn("Conflits détectés pour le professionnel ID: {}", professionalId);
             throw new ConflictException("Conflits d'horaires détectés. Le professionnel n'est pas disponible.");
+        }
+    }
+
+    /**
+     * Vérifie les conflits d'horaires pour un parent
+     */
+    private void checkForParentConflicts(Long parentId, LocalDateTime startTime, LocalDateTime endTime) {
+        List<Appointment> conflicts = appointmentRepository.findParentConflicts(parentId, startTime, endTime);
+
+        if (!conflicts.isEmpty()) {
+            log.warn("Conflits détectés pour le parent ID: {}", parentId);
+            throw new ConflictException("Vous ne pouvez pas être à 2 endroits en même temps ! Conflit d'horaires détecté.");
         }
     }
 }

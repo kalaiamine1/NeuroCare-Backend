@@ -26,7 +26,7 @@ import java.util.List;
  * Base URL: /api/v1/appointments
  */
 @RestController
-@RequestMapping("/api/v1/appointments")
+@RequestMapping("/appointments")
 @CrossOrigin(origins = "*")
 @Tag(name = "Appointments", description = "Appointment management APIs")
 public class AppointmentController {
@@ -257,6 +257,31 @@ public class AppointmentController {
             log.error("Erreur lors de la détection", e);
             return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                     .body(ApiResponse.error("Erreur lors de la détection",
+                            List.of(e.getMessage())));
+        }
+    }
+
+    /**
+     * Détecte les conflits d'horaires pour un parent
+     * GET /api/v1/appointments/conflicts/parent/detect
+     */
+    @GetMapping("/conflicts/parent/detect")
+    public ResponseEntity<ApiResponse<List<AppointmentDTO>>> detectParentConflicts(
+            @RequestParam Long parentId,
+            @RequestParam String startTime,
+            @RequestParam String endTime) {
+        log.info("GET /appointments/conflicts/parent/detect - Détection des conflits de parent");
+
+        try {
+            List<AppointmentDTO> conflicts = appointmentService.detectParentConflicts(
+                    parentId,
+                    java.time.LocalDateTime.parse(startTime),
+                    java.time.LocalDateTime.parse(endTime));
+            return ResponseEntity.ok(ApiResponse.success("Conflits de parent détectés", conflicts));
+        } catch (Exception e) {
+            log.error("Erreur lors de la détection des conflits de parent", e);
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body(ApiResponse.error("Erreur lors de la détection des conflits de parent",
                             List.of(e.getMessage())));
         }
     }
