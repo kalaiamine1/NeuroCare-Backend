@@ -1,4 +1,4 @@
-package com.BrainStack;
+package com.brainstack;
 
 import io.swagger.v3.oas.annotations.OpenAPIDefinition;
 import io.swagger.v3.oas.annotations.info.Info;
@@ -14,9 +14,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
     )
 )
 public class BrainStackApplication {
-
 	public static void main(String[] args) {
 		SpringApplication.run(BrainStackApplication.class, args);
 	}
-
 }
