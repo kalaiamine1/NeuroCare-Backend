@@ -1,8 +1,8 @@
-package com.brainstack.controller;
+package com.BrainStack.Controller;
 
 
-import com.brainstack.entity.Note;
-import com.brainstack.repository.NoteRepository;
+import com.BrainStack.Entity.Note;
+import com.BrainStack.Repository.NoteRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 

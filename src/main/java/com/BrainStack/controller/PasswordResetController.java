@@ -1,8 +1,8 @@
-package com.brainstack.controller;
+package com.BrainStack.Controller;
 
-import com.brainstack.entity.User;
-import com.brainstack.repository.UserRepository;
-import com.brainstack.service.EmailService;
+import com.BrainStack.Entity.User;
+import com.BrainStack.Repository.UserRepository;
+import com.BrainStack.Services.EmailService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;

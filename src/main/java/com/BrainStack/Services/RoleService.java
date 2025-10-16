@@ -1,7 +1,7 @@
-package com.brainstack.service;
+package com.BrainStack.Services;
 
-import com.brainstack.entity.Role;
-import com.brainstack.repository.RoleRepository;
+import com.BrainStack.Entity.Role;
+import com.BrainStack.Repository.RoleRepository;
 import org.springframework.stereotype.Service;
 
 @Service

@@ -1,6 +1,8 @@
-package com.brainstack.entity;
+package com.BrainStack.Entity;
 
 import jakarta.persistence.*;
+import lombok.*;
+import lombok.Builder;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -10,13 +12,15 @@ import java.util.Collection;
 import java.util.List;
 
 @Entity
+@Builder
+@AllArgsConstructor
 @Table(name = "users")
 public class User implements UserDetails {
 
     // === IDENTIFIANT ===
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    private int id;
 
     // === INFORMATIONS DE BASE ===
     private String fullName;
@@ -63,8 +67,8 @@ public class User implements UserDetails {
     }
 
     // === GETTERS & SETTERS ===
-    public Long getId() { return id; }
-    public void setId(Long id) { this.id = id; }
+    public int getId() { return id; }
+    public void setId(int id) { this.id = id; }
 
     public String getFullName() { return fullName; }
     public void setFullName(String fullName) { this.fullName = fullName; }

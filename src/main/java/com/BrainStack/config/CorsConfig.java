@@ -1,4 +1,4 @@
-package com.brainstack.config;
+package com.BrainStack.Config;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;

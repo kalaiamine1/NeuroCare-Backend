@@ -1,4 +1,4 @@
-package com.brainstack.security;
+package com.BrainStack.security;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;

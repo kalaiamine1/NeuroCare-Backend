@@ -1,4 +1,4 @@
-package com.brainstack.service;
+package com.BrainStack.Services;
 
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;

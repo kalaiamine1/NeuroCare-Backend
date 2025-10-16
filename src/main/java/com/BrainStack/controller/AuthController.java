@@ -1,12 +1,12 @@
-package com.brainstack.controller;
+package com.BrainStack.Controller;
 
-import com.brainstack.entity.Role;
-import com.brainstack.entity.User;
-import com.brainstack.repository.RoleRepository;
-import com.brainstack.repository.UserRepository;
-import com.brainstack.security.JwtUtil;
-import com.brainstack.service.EmailService;
-import com.brainstack.service.UserService;
+import com.BrainStack.Entity.Role;
+import com.BrainStack.Entity.User;
+import com.BrainStack.Repository.RoleRepository;
+import com.BrainStack.Repository.UserRepository;
+import com.BrainStack.security.JwtUtil;
+import com.BrainStack.Services.EmailService;
+import com.BrainStack.Services.UserService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;

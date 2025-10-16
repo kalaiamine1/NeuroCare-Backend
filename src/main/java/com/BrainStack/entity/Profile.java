@@ -1,4 +1,4 @@
-package com.brainstack.entity;
+package com.BrainStack.Entity;
 
 import jakarta.persistence.*;
 

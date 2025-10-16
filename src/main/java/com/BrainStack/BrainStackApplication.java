@@ -1,4 +1,4 @@
-package com.brainstack;
+package com.BrainStack;
 
 import io.swagger.v3.oas.annotations.OpenAPIDefinition;
 import io.swagger.v3.oas.annotations.info.Info;

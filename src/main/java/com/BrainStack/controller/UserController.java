@@ -1,7 +1,7 @@
-package com.brainstack.controller;
+package com.BrainStack.Controller;
 
-import com.brainstack.entity.User;
-import com.brainstack.repository.UserRepository;
+import com.BrainStack.Entity.User;
+import com.BrainStack.Repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -24,7 +24,7 @@ public class UserController {
 
     // ✅ Supprimer un utilisateur (Médecin, Parent, etc.)
     @DeleteMapping("/{id}")
-    public ResponseEntity<?> deleteUser(@PathVariable Long id) {
+    public ResponseEntity<?> deleteUser(@PathVariable int id) {
         if (!userRepository.existsById(id)) {
             return ResponseEntity.badRequest().body("Utilisateur introuvable");
         }

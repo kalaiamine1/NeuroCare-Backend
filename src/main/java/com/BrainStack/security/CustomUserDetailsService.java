@@ -1,7 +1,7 @@
-package com.brainstack.security;
+package com.BrainStack.security;
 
-import com.brainstack.entity.User;
-import com.brainstack.repository.UserRepository;
+import com.BrainStack.Entity.User;
+import com.BrainStack.Repository.UserRepository;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;

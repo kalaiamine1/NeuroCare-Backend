@@ -1,7 +1,7 @@
-package com.brainstack.controller;
+package com.BrainStack.Controller;
 
-import com.brainstack.entity.User;
-import com.brainstack.repository.UserRepository;
+import com.BrainStack.Entity.User;
+import com.BrainStack.Repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.*;
 import org.springframework.web.bind.annotation.*;
@@ -25,7 +25,7 @@ public class AIController {
 
     // === GÉNÉRATION AVATAR ===
     @PostMapping("/generate-avatar/{userId}")
-    public ResponseEntity<?> generateAvatar(@PathVariable Long userId) {
+    public ResponseEntity<?> generateAvatar(@PathVariable int userId) {
         try {
             // 🧠 Vérifie l’utilisateur
             User user = userRepository.findById(userId).orElse(null);
@@ -41,7 +41,7 @@ public class AIController {
             RestTemplate restTemplate = new RestTemplate();
             HttpHeaders headers = new HttpHeaders();
             headers.setContentType(MediaType.APPLICATION_JSON);
-       
+
 
             Map<String, Object> body = Map.of("inputs", prompt);
             HttpEntity<Map<String, Object>> request = new HttpEntity<>(body, headers);

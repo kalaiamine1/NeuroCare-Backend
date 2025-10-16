@@ -1,7 +1,7 @@
-package com.brainstack.repository;
+package com.BrainStack.Repository;
 
 
-import com.brainstack.entity.Note;
+import com.BrainStack.Entity.Note;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 

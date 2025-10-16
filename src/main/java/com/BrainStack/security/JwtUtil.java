@@ -1,4 +1,4 @@
-package com.brainstack.security;
+package com.BrainStack.security;
 
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.security.Keys;

@@ -1,9 +1,9 @@
-package com.brainstack.controller;
+package com.BrainStack.Controller;
 
-import com.brainstack.entity.Profile;
-import com.brainstack.entity.User;
-import com.brainstack.repository.ProfileRepository;
-import com.brainstack.repository.UserRepository;
+import com.BrainStack.Entity.Profile;
+import com.BrainStack.Entity.User;
+import com.BrainStack.Repository.ProfileRepository;
+import com.BrainStack.Repository.UserRepository;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -53,7 +53,7 @@ public class ProfileController {
 
     // === UPLOAD PHOTO ===
     @PostMapping("/upload-photo/{userId}")
-    public ResponseEntity<?> uploadPhoto(@PathVariable Long userId, @RequestParam("file") MultipartFile file) throws IOException {
+    public ResponseEntity<?> uploadPhoto(@PathVariable int userId, @RequestParam("file") MultipartFile file) throws IOException {
         User user = userRepository.findById(userId).orElse(null);
         if (user == null) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Utilisateur introuvable");

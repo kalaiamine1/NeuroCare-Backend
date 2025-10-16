@@ -1,4 +1,4 @@
-package com.brainstack.security;
+package com.BrainStack.security;
 
 import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.SignatureException;

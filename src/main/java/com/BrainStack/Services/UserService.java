@@ -1,9 +1,9 @@
-package com.brainstack.service;
+package com.BrainStack.Services;
 
-import com.brainstack.entity.Role;
-import com.brainstack.entity.User;
-import com.brainstack.repository.RoleRepository;
-import com.brainstack.repository.UserRepository;
+import com.BrainStack.Entity.Role;
+import com.BrainStack.Entity.User;
+import com.BrainStack.Repository.RoleRepository;
+import com.BrainStack.Repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
