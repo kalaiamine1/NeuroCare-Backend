@@ -1,9 +1,13 @@
 package com.BrainStack.Config;
 
 import com.BrainStack.Entity.Appointment;
+import com.BrainStack.Entity.User;
+import com.BrainStack.Entity.Child;
 import com.BrainStack.Enums.AppointmentStatus;
 import com.BrainStack.Enums.AppointmentType;
 import com.BrainStack.Repository.AppointmentRepository;
+import com.BrainStack.Repository.UserRepository;
+import com.BrainStack.Repository.ChildRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.CommandLineRunner;
@@ -19,13 +23,69 @@ public class DataInitializer {
     private static final Logger log = LoggerFactory.getLogger(DataInitializer.class);
 
     @Bean
-    public CommandLineRunner seedAppointments(AppointmentRepository appointmentRepository) {
+    public CommandLineRunner seedAppointments(AppointmentRepository appointmentRepository,
+                                             UserRepository userRepository,
+                                             ChildRepository childRepository) {
         return args -> {
             long count = appointmentRepository.count();
             if (count > 0) {
                 log.info("Skipping seed: {} appointments already present", count);
                 return;
             }
+
+            log.info("Seeding demo users (parents) and children...");
+
+            // Parents
+            User parentLeila = User.builder()
+                    .firstName("Leila").lastName("Ben Ali")
+                    .email("leila.parent@example.com")
+                    .password("password")
+                    .phoneNumber("+21620000001")
+                    .address("Tunis")
+                    .build();
+
+            User parentAhmed = User.builder()
+                    .firstName("Ahmed").lastName("Mansour")
+                    .email("ahmed.parent@example.com")
+                    .password("password")
+                    .phoneNumber("+21620000002")
+                    .address("Sfax")
+                    .build();
+
+            parentLeila = userRepository.save(parentLeila);
+            parentAhmed = userRepository.save(parentAhmed);
+
+            // Children
+            Child childAmine = Child.builder()
+                    .fullName("Amine Ben Ali")
+                    .birthDate(java.time.LocalDate.now().minusYears(8))
+                    .gender("M")
+                    .diagnosis("Trouble du langage")
+                    .parent(parentLeila)
+                    .build();
+
+            Child childSarah = Child.builder()
+                    .fullName("Sarah Mansour")
+                    .birthDate(java.time.LocalDate.now().minusYears(6))
+                    .gender("F")
+                    .diagnosis("Autisme")
+                    .parent(parentAhmed)
+                    .build();
+
+            Child childYoussef = Child.builder()
+                    .fullName("Youssef Mansour")
+                    .birthDate(java.time.LocalDate.now().minusYears(10))
+                    .gender("M")
+                    .diagnosis("TDAH")
+                    .parent(parentAhmed)
+                    .build();
+
+            childAmine = childRepository.save(childAmine);
+            childSarah = childRepository.save(childSarah);
+            childYoussef = childRepository.save(childYoussef);
+
+            log.info("Seeded parents ids: {}, {} | children ids: {}, {}, {}",
+                    parentLeila.getId(), parentAhmed.getId(), childAmine.getId(), childSarah.getId(), childYoussef.getId());
 
             log.info("Seeding demo appointments...");
 
@@ -38,9 +98,9 @@ public class DataInitializer {
                     .endTime(now.plusDays(5).withHour(14).withMinute(30))
                     .type(AppointmentType.MEDICAL)
                     .status(AppointmentStatus.CONFIRMED)
-                    .parentId(1L)
+                    .parentId((long) parentLeila.getId())
                     .professionalId(2L)
-                    .childId(3L)
+                    .childId((long) childAmine.getId())
                     .location("Cabinet Médical - 123 Rue de la Paix, Tunis")
                     .notes("Prévoir le carnet de santé")
                     .notificationSent(false)
@@ -53,9 +113,9 @@ public class DataInitializer {
                     .endTime(now.plusDays(7).withHour(10).withMinute(30))
                     .type(AppointmentType.THERAPEUTIC)
                     .status(AppointmentStatus.PENDING)
-                    .parentId(1L)
+                    .parentId((long) parentLeila.getId())
                     .professionalId(4L)
-                    .childId(3L)
+                    .childId((long) childAmine.getId())
                     .location("Centre Spécialisé, Tunis")
                     .notes("Apporter exercices")
                     .notificationSent(false)
@@ -68,9 +128,9 @@ public class DataInitializer {
                     .endTime(now.minusDays(2).withHour(9).withMinute(45))
                     .type(AppointmentType.EDUCATIONAL)
                     .status(AppointmentStatus.COMPLETED)
-                    .parentId(1L)
+                    .parentId((long) parentLeila.getId())
                     .professionalId(5L)
-                    .childId(3L)
+                    .childId((long) childAmine.getId())
                     .location("École Inclusive, La Marsa")
                     .notes("Envoyer le rapport à l'école")
                     .notificationSent(true)
@@ -89,9 +149,9 @@ public class DataInitializer {
                     .endTime(now.plusDays(3).withHour(10).withMinute(30))
                     .type(AppointmentType.THERAPEUTIC)
                     .status(AppointmentStatus.CONFIRMED)
-                    .parentId(2L) // Papa Ahmed
+                    .parentId((long) parentAhmed.getId()) // Papa Ahmed
                     .professionalId(6L) // Psychologue ABA
-                    .childId(4L) // Sarah
+                    .childId((long) childSarah.getId()) // Sarah
                     .location("Centre ABA Tunis, Avenue Habib Bourguiba")
                     .notes("Apporter le carnet de communication")
                     .notificationSent(false)
@@ -104,9 +164,9 @@ public class DataInitializer {
                     .endTime(now.plusDays(5).withHour(14).withMinute(45))
                     .type(AppointmentType.THERAPEUTIC)
                     .status(AppointmentStatus.PENDING)
-                    .parentId(2L) // Papa Ahmed
+                    .parentId((long) parentAhmed.getId()) // Papa Ahmed
                     .professionalId(7L) // Orthophoniste spécialisée
-                    .childId(4L) // Sarah
+                    .childId((long) childSarah.getId()) // Sarah
                     .location("Cabinet Orthophonie, Sfax")
                     .notes("Prévoir les pictogrammes")
                     .notificationSent(false)
@@ -120,9 +180,9 @@ public class DataInitializer {
                     .endTime(now.plusDays(4).withHour(10).withMinute(30))
                     .type(AppointmentType.MEDICAL)
                     .status(AppointmentStatus.CONFIRMED)
-                    .parentId(2L) // Papa Ahmed
+                    .parentId((long) parentAhmed.getId()) // Papa Ahmed
                     .professionalId(8L) // Neurologue pédiatre
-                    .childId(5L) // Youssef
+                    .childId((long) childYoussef.getId()) // Youssef
                     .location("Hôpital Charles Nicolle, Tunis")
                     .notes("Apporter les dernières analyses")
                     .notificationSent(false)
@@ -135,9 +195,9 @@ public class DataInitializer {
                     .endTime(now.plusDays(6).withHour(15).withMinute(45))
                     .type(AppointmentType.THERAPEUTIC)
                     .status(AppointmentStatus.CONFIRMED)
-                    .parentId(2L) // Papa Ahmed
+                    .parentId((long) parentAhmed.getId()) // Papa Ahmed
                     .professionalId(9L) // Psychomotricien
-                    .childId(5L) // Youssef
+                    .childId((long) childYoussef.getId()) // Youssef
                     .location("Centre de Rééducation, Monastir")
                     .notes("Vêtements confortables requis")
                     .notificationSent(false)
@@ -152,9 +212,9 @@ public class DataInitializer {
                     .endTime(now.plusDays(8).withHour(14).withMinute(30))
                     .type(AppointmentType.MEDICAL)
                     .status(AppointmentStatus.PENDING)
-                    .parentId(2L) // Papa Ahmed
+                    .parentId((long) parentAhmed.getId()) // Papa Ahmed
                     .professionalId(10L)
-                    .childId(4L) // Sarah
+                    .childId((long) childSarah.getId()) // Sarah
                     .location("Cabinet Test 1")
                     .notes("⚠️ CONFLIT POTENTIEL")
                     .notificationSent(false)
@@ -167,9 +227,9 @@ public class DataInitializer {
                     .endTime(now.plusDays(8).withHour(14).withMinute(30))
                     .type(AppointmentType.THERAPEUTIC)
                     .status(AppointmentStatus.PENDING)
-                    .parentId(2L) // Papa Ahmed
+                    .parentId((long) parentAhmed.getId()) // Papa Ahmed
                     .professionalId(11L)
-                    .childId(5L) // Youssef
+                    .childId((long) childYoussef.getId()) // Youssef
                     .location("Cabinet Test 2")
                     .notes("⚠️ CONFLIT POTENTIEL - Même parent, même heure")
                     .notificationSent(false)
@@ -183,9 +243,9 @@ public class DataInitializer {
                     .endTime(now.minusDays(5).withHour(11).withMinute(0))
                     .type(AppointmentType.MEDICAL)
                     .status(AppointmentStatus.COMPLETED)
-                    .parentId(2L) // Papa Ahmed
+                    .parentId((long) parentAhmed.getId()) // Papa Ahmed
                     .professionalId(12L)
-                    .childId(4L) // Sarah
+                    .childId((long) childSarah.getId()) // Sarah
                     .location("Centre d'Évaluation, Tunis")
                     .notes("Rapport disponible")
                     .notificationSent(true)
@@ -199,9 +259,9 @@ public class DataInitializer {
                     .endTime(now.minusDays(3).withHour(16).withMinute(30))
                     .type(AppointmentType.MEDICAL)
                     .status(AppointmentStatus.COMPLETED)
-                    .parentId(2L) // Papa Ahmed
+                    .parentId((long) parentAhmed.getId()) // Papa Ahmed
                     .professionalId(13L)
-                    .childId(5L) // Youssef
+                    .childId((long) childYoussef.getId()) // Youssef
                     .location("Cabinet Neurologie, Sousse")
                     .notes("Prescription renouvelée")
                     .notificationSent(true)
