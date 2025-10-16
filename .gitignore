@@ -31,3 +31,16 @@ build/
 
 ### VS Code ###
 .vscode/
+
+# Environnements virtuels Python
+venv/
+*/venv/
+
+# Fichiers volumineux à exclure
+*.mp4
+*.avi
+*.exe
+*.dll
+*.lib
+# Ignorer l'environnement Python
+#src/main/java/com/BrainStack/IA/venv/
