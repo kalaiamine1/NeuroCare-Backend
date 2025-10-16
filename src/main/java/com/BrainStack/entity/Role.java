@@ -10,11 +10,17 @@ public class Role {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    // 🔹 IMPORTANT : ce champ est utilisé par Spring Security
+    // Les valeurs typiques sont : ROLE_USER, ROLE_ADMIN
+    // et NON pas "PARENT" ou "MEDECIN" (ça c’est dans userType)
     @Column(unique = true, nullable = false)
-    private String name; // PARENT, DOCTOR, ADMIN (optionnel)
+    private String name;
 
-    // === Constructeurs ===
-    public Role() {
+    // === CONSTRUCTEURS ===
+    public Role() {}
+
+    public Role(String name) {
+        this.name = name;
     }
 
     public Role(Long id, String name) {
@@ -22,7 +28,7 @@ public class Role {
         this.name = name;
     }
 
-    // === Getters & Setters ===
+    // === GETTERS & SETTERS ===
     public Long getId() {
         return id;
     }

@@ -46,8 +46,8 @@ public class SecurityConfig {
                 }))
                 .csrf(csrf -> csrf.disable())
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/api/auth/**", "/v3/api-docs/**", "/swagger-ui/**", "/api/ai/**", "/api/notes/**").permitAll()
-                        .anyRequest().authenticated()
+                        // ✅ Autoriser TOUTES les requêtes (temporairement)
+                        .anyRequest().permitAll()
                 )
                 .sessionManagement(sess -> sess.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);

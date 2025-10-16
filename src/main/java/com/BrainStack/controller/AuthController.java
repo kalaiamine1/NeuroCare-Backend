@@ -1,6 +1,8 @@
 package com.brainstack.controller;
 
+import com.brainstack.entity.Role;
 import com.brainstack.entity.User;
+import com.brainstack.repository.RoleRepository;
 import com.brainstack.repository.UserRepository;
 import com.brainstack.security.JwtUtil;
 import com.brainstack.service.EmailService;
@@ -15,15 +17,13 @@ import java.util.UUID;
 
 @RestController
 @CrossOrigin(origins = "http://localhost:4200")
-
 @RequestMapping("/api/auth")
-
-
 public class AuthController {
 
     private final UserService userService;
     private final JwtUtil jwtUtil;
     private final UserRepository userRepository;
+    private final RoleRepository roleRepository; // ✅ ajouté pour affecter ROLE_USER automatiquement
     private final EmailService emailService;
     private final PasswordEncoder passwordEncoder;
 
@@ -31,39 +31,60 @@ public class AuthController {
     public AuthController(UserService userService,
                           JwtUtil jwtUtil,
                           UserRepository userRepository,
+                          RoleRepository roleRepository,
                           EmailService emailService,
                           PasswordEncoder passwordEncoder) {
         this.userService = userService;
         this.jwtUtil = jwtUtil;
         this.userRepository = userRepository;
+        this.roleRepository = roleRepository;
         this.emailService = emailService;
         this.passwordEncoder = passwordEncoder;
     }
 
-    // === INSCRIPTION ===
+    // === 🧩 INSCRIPTION INTELLIGENTE ===
     @PostMapping("/register")
     public ResponseEntity<?> register(@RequestBody User userRequest) {
         System.out.println("📩 [DEBUG] Requête reçue dans /api/auth/register : " + userRequest.getEmail());
-        try {
-            // ✅ Maintenant on envoie aussi le téléphone au service
-            User user = userService.registerUser(
-                    userRequest.getFullName(),
-                    userRequest.getEmail(),
-                    userRequest.getPassword(),
-                    userRequest.getRole().getName(),
-                    userRequest.getPhone() // ➕ téléphone ajouté
-            );
 
-            System.out.println("✅ [DEBUG] Utilisateur enregistré : " + user.getEmail());
-            return ResponseEntity.ok(user);
+        try {
+            // ✅ 1. Détermination automatique du type d’utilisateur
+            if (userRequest.getSpecialite() != null && !userRequest.getSpecialite().isEmpty()) {
+                userRequest.setUserType("MEDECIN");
+            } else {
+                userRequest.setUserType("PARENT");
+            }
+
+            // ✅ 2. Attribution automatique du rôle de base (Spring Security)
+            Role defaultRole = roleRepository.findByName("ROLE_USER")
+                    .orElseThrow(() -> new RuntimeException("Rôle ROLE_USER introuvable"));
+            userRequest.setRole(defaultRole);
+
+            // ✅ 3. Encodage du mot de passe
+            userRequest.setPassword(passwordEncoder.encode(userRequest.getPassword()));
+
+            // ✅ 4. Sauvegarde de l’utilisateur
+            User savedUser = userRepository.save(userRequest);
+
+            System.out.println("✅ [DEBUG] Utilisateur enregistré : "
+                    + savedUser.getEmail() + " (" + savedUser.getUserType() + ")");
+
+            // ✅ 5. Retourne une réponse claire au front
+            return ResponseEntity.ok(Map.of(
+                    "message", "Inscription réussie",
+                    "userType", savedUser.getUserType(),
+                    "email", savedUser.getEmail()
+            ));
+
         } catch (Exception e) {
             System.err.println("❌ [DEBUG] Erreur dans /register : " + e.getMessage());
             e.printStackTrace();
-            return ResponseEntity.badRequest().body(e.getMessage());
+            return ResponseEntity.badRequest().body(Map.of(
+                    "error", "Échec de l'inscription",
+                    "details", e.getMessage()
+            ));
         }
     }
-
-
 
     // === CONNEXION ===
     @PostMapping("/login")
@@ -78,7 +99,8 @@ public class AuthController {
 
             return ResponseEntity.ok(Map.of(
                     "token", token,
-                    "user", user
+                    "user", user,
+                    "userType", user.getUserType() // ✅ on ajoute le type utilisateur pour le front
             ));
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(e.getMessage());
@@ -100,6 +122,7 @@ public class AuthController {
                     "fullName", user.getFullName(),
                     "email", user.getEmail(),
                     "role", user.getRole().getName(),
+                    "userType", user.getUserType(), // ✅ utile pour redirection front
                     "avatarUrl", user.getAvatarUrl()
             ));
         } catch (Exception e) {
@@ -161,6 +184,7 @@ public class AuthController {
         return ResponseEntity.ok(Map.of(
                 "token", token,
                 "role", user.getRole().getName(),
+                "userType", user.getUserType(),
                 "email", user.getEmail()
         ));
     }

@@ -26,19 +26,33 @@ public class User implements UserDetails {
     private boolean enabled = true;
     private String avatarUrl;
 
+    // === 🔹 NOUVEAUX CHAMPS POUR LE FORMULAIRE INTELLIGENT ===
+    // Champ IA : Spécialité médicale (uniquement pour les médecins)
+    private String specialite;
+
+    // Champ IA : Emplacement du cabinet (pour les médecins)
+    private String workplace;
+
+    // Champ IA : Type d'utilisateur (PARENT ou MEDECIN)
+    private String userType;
+    // 💡 Ce champ est utile pour enregistrer automatiquement dans la base
+    // si c’est un parent ou un médecin (plus simple que de le déduire du rôle).
+    // Exemples :
+    // - userType = "PARENT"
+    // - userType = "MEDECIN"
+
     // === SÉCURITÉ ET AUTHENTIFICATION ===
     private String resetToken;          // pour mot de passe oublié
     private String otpCode;             // pour 2FA
     private LocalDateTime otpExpiration; // date d’expiration du code OTP
 
-    // === RÔLE ===
+    // === RÔLE (Spring Security) ===
     @ManyToOne
     @JoinColumn(name = "role_id")
     private Role role;
 
     // === CONSTRUCTEURS ===
-    public User() {
-    }
+    public User() {}
 
     public User(String fullName, String email, String password, Role role) {
         this.fullName = fullName;
@@ -64,12 +78,22 @@ public class User implements UserDetails {
     public String getPhone() { return phone; }
     public void setPhone(String phone) { this.phone = phone; }
 
-
     public void setEnabled(boolean enabled) { this.enabled = enabled; }
 
     public String getAvatarUrl() { return avatarUrl; }
     public void setAvatarUrl(String avatarUrl) { this.avatarUrl = avatarUrl; }
 
+    // === 🔹 GETTERS & SETTERS DES NOUVEAUX CHAMPS ===
+    public String getSpecialite() { return specialite; }
+    public void setSpecialite(String specialite) { this.specialite = specialite; }
+
+    public String getWorkplace() { return workplace; }
+    public void setWorkplace(String workplace) { this.workplace = workplace; }
+
+    public String getUserType() { return userType; }
+    public void setUserType(String userType) { this.userType = userType; }
+
+    // === SÉCURITÉ ===
     public String getResetToken() { return resetToken; }
     public void setResetToken(String resetToken) { this.resetToken = resetToken; }
 
