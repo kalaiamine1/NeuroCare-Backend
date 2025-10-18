@@ -87,10 +87,26 @@ public class AppointmentService {
      * Récupère tous les rendez-vous du parent avec pagination
      */
     public Page<AppointmentDTO> getAppointmentsByParent(Long parentId, int page, int size) {
-        log.info("Récupération des rendez-vous du parent ID: {}", parentId);
+        log.info("Récupération des rendez-vous du parent ID: {} (page={}, size={})", parentId, page, size);
+
+        // Validation des paramètres
+        if (parentId == null || parentId <= 0) {
+            throw new IllegalArgumentException("L'ID du parent doit être un nombre positif");
+        }
+
+        if (page < 0) {
+            throw new IllegalArgumentException("Le numéro de page doit être supérieur ou égal à 0");
+        }
+
+        if (size <= 0 || size > 100) {
+            throw new IllegalArgumentException("La taille de page doit être entre 1 et 100");
+        }
 
         Pageable pageable = PageRequest.of(page, size);
         Page<Appointment> appointments = appointmentRepository.findByParentId(parentId, pageable);
+
+        log.info("Trouvé {} rendez-vous pour le parent ID: {} (page {}/{})", 
+                appointments.getTotalElements(), parentId, page + 1, appointments.getTotalPages());
 
         return appointments.map(appointmentMapper::toDTO);
     }
@@ -99,10 +115,26 @@ public class AppointmentService {
      * Récupère tous les rendez-vous du professionnel avec pagination
      */
     public Page<AppointmentDTO> getAppointmentsByProfessional(Long professionalId, int page, int size) {
-        log.info("Récupération des rendez-vous du professionnel ID: {}", professionalId);
+        log.info("Récupération des rendez-vous du professionnel ID: {} (page={}, size={})", professionalId, page, size);
+
+        // Validation des paramètres
+        if (professionalId == null || professionalId <= 0) {
+            throw new IllegalArgumentException("L'ID du professionnel doit être un nombre positif");
+        }
+
+        if (page < 0) {
+            throw new IllegalArgumentException("Le numéro de page doit être supérieur ou égal à 0");
+        }
+
+        if (size <= 0 || size > 100) {
+            throw new IllegalArgumentException("La taille de page doit être entre 1 et 100");
+        }
 
         Pageable pageable = PageRequest.of(page, size);
         Page<Appointment> appointments = appointmentRepository.findByProfessionalId(professionalId, pageable);
+
+        log.info("Trouvé {} rendez-vous pour le professionnel ID: {} (page {}/{})", 
+                appointments.getTotalElements(), professionalId, page + 1, appointments.getTotalPages());
 
         return appointments.map(appointmentMapper::toDTO);
     }
@@ -324,6 +356,180 @@ public class AppointmentService {
         if (!conflicts.isEmpty()) {
             log.warn("Conflits détectés pour le parent ID: {}", parentId);
             throw new ConflictException("Vous ne pouvez pas être à 2 endroits en même temps ! Conflit d'horaires détecté.");
+        }
+    }
+
+    // ========================================
+    // 🤖 MÉTHODES POUR LES RAPPELS IA
+    // ========================================
+
+    @Autowired
+    private ReminderAIService reminderAIService;
+
+    /**
+     * 📨 Génère un rappel pour un rendez-vous spécifique
+     * 
+     * @param appointmentId ID du rendez-vous
+     * @return Map avec le rappel généré
+     */
+    public Map<String, Object> generateReminderForAppointment(Long appointmentId) {
+        log.info("📨 Génération rappel pour RDV ID: {}", appointmentId);
+
+        try {
+            Appointment appointment = appointmentRepository.findById(appointmentId)
+                    .orElseThrow(() -> new ResourceNotFoundException("Rendez-vous non trouvé avec l'ID: " + appointmentId));
+
+            // Génération du rappel via le service IA
+            var reminderResponse = reminderAIService.generateReminderForAppointment(appointment);
+            
+            // Mise à jour du statut de notification
+            appointment.setNotificationSent(true);
+            appointment.setReminderSentAt(LocalDateTime.now());
+            appointmentRepository.save(appointment);
+
+            log.info("✅ Rappel généré et envoyé pour RDV ID: {}", appointmentId);
+            
+            return Map.of(
+                "success", true,
+                "appointment_id", appointmentId,
+                "message", reminderResponse.getMessage(),
+                "generated_at", reminderResponse.getGeneratedAt(),
+                "source", "ai_service"
+            );
+
+        } catch (Exception e) {
+            log.error("❌ Erreur génération rappel pour RDV ID: {}", appointmentId, e);
+            return Map.of(
+                "success", false,
+                "appointment_id", appointmentId,
+                "error", e.getMessage(),
+                "source", "fallback"
+            );
+        }
+    }
+
+    /**
+     * 👨‍👩‍👧‍👦 Génère des rappels pour tous les rendez-vous d'un parent
+     * 
+     * @param parentId ID du parent
+     * @return Map avec les résultats
+     */
+    public Map<String, Object> generateRemindersForParent(Long parentId) {
+        log.info("👨‍👩‍👧‍👦 Génération rappels pour parent ID: {}", parentId);
+
+        try {
+            // Récupération des rendez-vous du parent
+            List<Appointment> appointments = appointmentRepository.findByParentId(parentId, 
+                    org.springframework.data.domain.PageRequest.of(0, 100)).getContent();
+
+            if (appointments.isEmpty()) {
+                return Map.of(
+                    "success", true,
+                    "parent_id", parentId,
+                    "count", 0,
+                    "message", "Aucun rendez-vous trouvé pour ce parent"
+                );
+            }
+
+            // Génération des rappels en lot
+            var batchResult = reminderAIService.generateBatchReminders(appointments);
+            
+            // Mise à jour des statuts de notification
+            for (Appointment appointment : appointments) {
+                appointment.setNotificationSent(true);
+                appointment.setReminderSentAt(LocalDateTime.now());
+            }
+            appointmentRepository.saveAll(appointments);
+
+            log.info("✅ Rappels générés pour parent ID: {} - {} rappels", 
+                    parentId, batchResult.get("count"));
+            
+            return batchResult;
+
+        } catch (Exception e) {
+            log.error("❌ Erreur génération rappels parent ID: {}", parentId, e);
+            return Map.of(
+                "success", false,
+                "parent_id", parentId,
+                "error", e.getMessage(),
+                "source", "fallback"
+            );
+        }
+    }
+
+    /**
+     * 🔄 Tâche planifiée pour l'envoi automatique des rappels
+     * Exécutée tous les jours à 8h00
+     */
+    @org.springframework.scheduling.annotation.Scheduled(cron = "0 0 8 * * *")
+    public void sendAutomaticReminders() {
+        log.info("🔄 Démarrage envoi automatique des rappels");
+
+        try {
+            // Récupération des rendez-vous des prochaines 24-48h
+            LocalDateTime now = LocalDateTime.now();
+            LocalDateTime tomorrow = now.plusDays(1);
+            LocalDateTime dayAfterTomorrow = now.plusDays(2);
+
+            List<Appointment> upcomingAppointments = appointmentRepository
+                    .findAppointmentsBetween(tomorrow, dayAfterTomorrow)
+                    .stream()
+                    .filter(appointment -> !appointment.getNotificationSent())
+                    .collect(Collectors.toList());
+
+            if (upcomingAppointments.isEmpty()) {
+                log.info("ℹ️ Aucun rappel automatique à envoyer");
+                return;
+            }
+
+            // Génération des rappels
+            var batchResult = reminderAIService.generateBatchReminders(upcomingAppointments);
+            
+            // Mise à jour des statuts
+            for (Appointment appointment : upcomingAppointments) {
+                appointment.setNotificationSent(true);
+                appointment.setReminderSentAt(LocalDateTime.now());
+            }
+            appointmentRepository.saveAll(upcomingAppointments);
+
+            log.info("✅ Rappels automatiques envoyés: {} rappels", batchResult.get("count"));
+
+        } catch (Exception e) {
+            log.error("❌ Erreur envoi automatique des rappels", e);
+        }
+    }
+
+    /**
+     * 👁️ Prévisualise un rappel sans l'envoyer
+     * 
+     * @param appointmentId ID du rendez-vous
+     * @return Map avec le rappel prévisualisé
+     */
+    public Map<String, Object> previewReminder(Long appointmentId) {
+        log.info("👁️ Prévisualisation rappel pour RDV ID: {}", appointmentId);
+
+        try {
+            Appointment appointment = appointmentRepository.findById(appointmentId)
+                    .orElseThrow(() -> new ResourceNotFoundException("Rendez-vous non trouvé avec l'ID: " + appointmentId));
+
+            // Génération du rappel sans mise à jour
+            var reminderResponse = reminderAIService.generateReminderForAppointment(appointment);
+            
+            return Map.of(
+                "success", true,
+                "appointment_id", appointmentId,
+                "message", reminderResponse.getMessage(),
+                "preview", true,
+                "generated_at", reminderResponse.getGeneratedAt()
+            );
+
+        } catch (Exception e) {
+            log.error("❌ Erreur prévisualisation rappel pour RDV ID: {}", appointmentId, e);
+            return Map.of(
+                "success", false,
+                "appointment_id", appointmentId,
+                "error", e.getMessage()
+            );
         }
     }
 }

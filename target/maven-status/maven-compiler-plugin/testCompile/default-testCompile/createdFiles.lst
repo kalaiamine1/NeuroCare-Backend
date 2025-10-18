@@ -1,0 +1,10 @@
+com\BrainStack\HealthRecordControllerTest.class
+com\BrainStack\StatisticsControllerTest.class
+com\BrainStack\Controller\AppointmentControllerTest.class
+com\BrainStack\AnomalyDetectionServiceImplTest.class
+com\BrainStack\ChildServiceImplTest.class
+com\BrainStack\ChildControllerTest.class
+com\BrainStack\Services\AppointmentServiceTest.class
+com\BrainStack\StatisticsControllerTest$TestConfig.class
+com\BrainStack\StatisticsServiceImplTest.class
+com\BrainStack\Controller\TestJacksonConfig.class

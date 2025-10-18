@@ -39,14 +39,14 @@ public class SecurityConfig {
         http
                 .cors(cors -> cors.configurationSource(request -> {
                     CorsConfiguration corsConfig = new CorsConfiguration();
-                    corsConfig.setAllowedOrigins(List.of("http://localhost:4200"));
-                    corsConfig.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
+                    corsConfig.setAllowedOrigins(List.of("http://localhost:4200", "http://localhost:8089"));
+                    corsConfig.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH", "HEAD"));
                     corsConfig.setAllowedHeaders(List.of("*"));
                     corsConfig.setAllowCredentials(true);
-                    ;
-                    // ✅ N’applique la config CORS qu’à /uploads/**
+                    corsConfig.setExposedHeaders(List.of("Authorization", "Content-Type"));
+                    // Apply CORS to all endpoints
                     UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
-                    source.registerCorsConfiguration("/uploads/**", corsConfig);
+                    source.registerCorsConfiguration("/**", corsConfig);
                     return source.getCorsConfiguration(request);
                 }))
                 .csrf(csrf -> csrf.disable())

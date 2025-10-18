@@ -1,0 +1,23 @@
+# 🤖 Requirements pour le Microservice IA Rappels NeuroCare
+# ========================================================
+
+# Framework web
+flask==3.0.0
+flask-cors==4.0.0
+
+# Gestion des dates et heures
+python-dateutil==2.8.2
+
+# Validation des données
+marshmallow==3.20.1
+
+# Logging avancé
+colorlog==6.8.0
+
+# Utilitaires
+requests==2.31.0
+
+# Développement (optionnel)
+pytest==7.4.3
+pytest-flask==1.3.0
+

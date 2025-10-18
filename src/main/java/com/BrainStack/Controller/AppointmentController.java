@@ -18,8 +18,12 @@ import org.springframework.web.bind.annotation.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.NotNull;
+import org.springframework.validation.annotation.Validated;
 
 import java.util.List;
+import java.util.Map;
 
 /**
  * Controller pour la gestion des rendez-vous
@@ -29,6 +33,7 @@ import java.util.List;
 @RequestMapping("/appointments")
 @CrossOrigin(origins = "*")
 @Tag(name = "Appointments", description = "Appointment management APIs")
+@Validated
 public class AppointmentController {
 
     @Autowired
@@ -82,27 +87,63 @@ public class AppointmentController {
      */
     @GetMapping("/parent/{parentId}")
     public ResponseEntity<ApiResponse<PagedResponse<AppointmentDTO>>> getAppointmentsByParent(
-            @PathVariable Long parentId,
-            @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "10") int size) {
-        log.info("GET /appointments/parent/{} - Récupération des rendez-vous du parent", parentId);
+            @PathVariable @NotNull @Min(1) Long parentId,
+            @RequestParam(defaultValue = "0") @Min(0) int page,
+            @RequestParam(defaultValue = "10") @Min(1) int size) {
+        log.info("GET /appointments/parent/{} - Récupération des rendez-vous du parent (page={}, size={})", 
+                parentId, page, size);
+
+        // Validation des paramètres de pagination
+        if (page < 0) {
+            return ResponseEntity.badRequest()
+                    .body(ApiResponse.error("Le numéro de page doit être supérieur ou égal à 0", 
+                            List.of("page: " + page)));
+        }
+        
+        if (size < 1 || size > 100) {
+            return ResponseEntity.badRequest()
+                    .body(ApiResponse.error("La taille de page doit être entre 1 et 100", 
+                            List.of("size: " + size)));
+        }
 
         try {
-        Page<AppointmentDTO> appointmentsPage = appointmentService.getAppointmentsByParent(parentId, page, size);
-        PagedResponse<AppointmentDTO> paged = PagedResponse.<AppointmentDTO>builder()
-            .content(appointmentsPage.getContent())
-            .page(appointmentsPage.getNumber())
-            .size(appointmentsPage.getSize())
-            .totalElements(appointmentsPage.getTotalElements())
-            .totalPages(appointmentsPage.getTotalPages())
-            .last(appointmentsPage.isLast())
-            .build();
-        return ResponseEntity.ok(ApiResponse.success("Rendez-vous du parent récupérés", paged));
+            Page<AppointmentDTO> appointmentsPage = appointmentService.getAppointmentsByParent(parentId, page, size);
+            
+            if (appointmentsPage.isEmpty()) {
+                log.info("Aucun rendez-vous trouvé pour le parent ID: {}", parentId);
+                PagedResponse<AppointmentDTO> emptyPaged = PagedResponse.<AppointmentDTO>builder()
+                    .content(List.of())
+                    .page(page)
+                    .size(size)
+                    .totalElements(0)
+                    .totalPages(0)
+                    .last(true)
+                    .build();
+                return ResponseEntity.ok(ApiResponse.success("Aucun rendez-vous trouvé pour ce parent", emptyPaged));
+            }
+            
+            PagedResponse<AppointmentDTO> paged = PagedResponse.<AppointmentDTO>builder()
+                .content(appointmentsPage.getContent())
+                .page(appointmentsPage.getNumber())
+                .size(appointmentsPage.getSize())
+                .totalElements(appointmentsPage.getTotalElements())
+                .totalPages(appointmentsPage.getTotalPages())
+                .last(appointmentsPage.isLast())
+                .build();
+                
+            log.info("Récupération réussie: {} rendez-vous trouvés pour le parent ID: {}", 
+                    appointmentsPage.getTotalElements(), parentId);
+            return ResponseEntity.ok(ApiResponse.success("Rendez-vous du parent récupérés avec succès", paged));
+            
+        } catch (IllegalArgumentException e) {
+            log.error("Erreur de validation lors de la récupération pour le parent ID: {}", parentId, e);
+            return ResponseEntity.badRequest()
+                    .body(ApiResponse.error("Paramètres invalides", List.of(e.getMessage())));
         } catch (Exception e) {
-            log.error("Erreur lors de la récupération", e);
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                    .body(ApiResponse.error("Erreur lors de la récupération",
-                            List.of(e.getMessage())));
+            log.error("Erreur inattendue lors de la récupération des rendez-vous du parent ID: {}", parentId, e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(ApiResponse.error("Erreur interne du serveur", 
+                            List.of("Une erreur inattendue s'est produite")));
         }
     }
 
@@ -112,27 +153,63 @@ public class AppointmentController {
      */
     @GetMapping("/professional/{professionalId}")
     public ResponseEntity<ApiResponse<PagedResponse<AppointmentDTO>>> getAppointmentsByProfessional(
-            @PathVariable Long professionalId,
-            @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "10") int size) {
-        log.info("GET /appointments/professional/{} - Récupération des rendez-vous du professionnel", professionalId);
+            @PathVariable @NotNull @Min(1) Long professionalId,
+            @RequestParam(defaultValue = "0") @Min(0) int page,
+            @RequestParam(defaultValue = "10") @Min(1) int size) {
+        log.info("GET /appointments/professional/{} - Récupération des rendez-vous du professionnel (page={}, size={})", 
+                professionalId, page, size);
+
+        // Validation des paramètres de pagination
+        if (page < 0) {
+            return ResponseEntity.badRequest()
+                    .body(ApiResponse.error("Le numéro de page doit être supérieur ou égal à 0", 
+                            List.of("page: " + page)));
+        }
+        
+        if (size < 1 || size > 100) {
+            return ResponseEntity.badRequest()
+                    .body(ApiResponse.error("La taille de page doit être entre 1 et 100", 
+                            List.of("size: " + size)));
+        }
 
         try {
-        Page<AppointmentDTO> appointmentsPage = appointmentService.getAppointmentsByProfessional(professionalId, page, size);
-        PagedResponse<AppointmentDTO> paged = PagedResponse.<AppointmentDTO>builder()
-            .content(appointmentsPage.getContent())
-            .page(appointmentsPage.getNumber())
-            .size(appointmentsPage.getSize())
-            .totalElements(appointmentsPage.getTotalElements())
-            .totalPages(appointmentsPage.getTotalPages())
-            .last(appointmentsPage.isLast())
-            .build();
-        return ResponseEntity.ok(ApiResponse.success("Rendez-vous du professionnel récupérés", paged));
+            Page<AppointmentDTO> appointmentsPage = appointmentService.getAppointmentsByProfessional(professionalId, page, size);
+            
+            if (appointmentsPage.isEmpty()) {
+                log.info("Aucun rendez-vous trouvé pour le professionnel ID: {}", professionalId);
+                PagedResponse<AppointmentDTO> emptyPaged = PagedResponse.<AppointmentDTO>builder()
+                    .content(List.of())
+                    .page(page)
+                    .size(size)
+                    .totalElements(0)
+                    .totalPages(0)
+                    .last(true)
+                    .build();
+                return ResponseEntity.ok(ApiResponse.success("Aucun rendez-vous trouvé pour ce professionnel", emptyPaged));
+            }
+            
+            PagedResponse<AppointmentDTO> paged = PagedResponse.<AppointmentDTO>builder()
+                .content(appointmentsPage.getContent())
+                .page(appointmentsPage.getNumber())
+                .size(appointmentsPage.getSize())
+                .totalElements(appointmentsPage.getTotalElements())
+                .totalPages(appointmentsPage.getTotalPages())
+                .last(appointmentsPage.isLast())
+                .build();
+                
+            log.info("Récupération réussie: {} rendez-vous trouvés pour le professionnel ID: {}", 
+                    appointmentsPage.getTotalElements(), professionalId);
+            return ResponseEntity.ok(ApiResponse.success("Rendez-vous du professionnel récupérés avec succès", paged));
+            
+        } catch (IllegalArgumentException e) {
+            log.error("Erreur de validation lors de la récupération pour le professionnel ID: {}", professionalId, e);
+            return ResponseEntity.badRequest()
+                    .body(ApiResponse.error("Paramètres invalides", List.of(e.getMessage())));
         } catch (Exception e) {
-            log.error("Erreur lors de la récupération", e);
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                    .body(ApiResponse.error("Erreur lors de la récupération",
-                            List.of(e.getMessage())));
+            log.error("Erreur inattendue lors de la récupération des rendez-vous du professionnel ID: {}", professionalId, e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(ApiResponse.error("Erreur interne du serveur", 
+                            List.of("Une erreur inattendue s'est produite")));
         }
     }
 
@@ -283,6 +360,126 @@ public class AppointmentController {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                     .body(ApiResponse.error("Erreur lors de la détection des conflits de parent",
                             List.of(e.getMessage())));
+        }
+    }
+
+    // ========================================
+    // 🤖 ENDPOINTS POUR LES RAPPELS IA
+    // ========================================
+
+    /**
+     * 📨 Génère un rappel pour un rendez-vous
+     * POST /api/v1/appointments/{id}/generate-reminder
+     */
+    @PostMapping("/{id}/generate-reminder")
+    public ResponseEntity<ApiResponse<Map<String, Object>>> generateReminderForAppointment(
+            @PathVariable Long id) {
+        log.info("POST /appointments/{}/generate-reminder - Génération rappel", id);
+
+        try {
+            Map<String, Object> result = appointmentService.generateReminderForAppointment(id);
+
+            if ((Boolean) result.get("success")) {
+                return ResponseEntity.ok(ApiResponse.success("Rappel généré avec succès", result));
+            } else {
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                        .body(ApiResponse.error("Erreur génération rappel",
+                                List.of(result.get("error").toString())));
+            }
+        } catch (Exception e) {
+            log.error("Erreur génération rappel pour RDV ID: {}", id, e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(ApiResponse.error("Erreur interne", List.of(e.getMessage())));
+        }
+    }
+
+    /**
+     * 📨 Génère un rappel pour un rendez-vous (HEAD support)
+     * HEAD /api/v1/appointments/{id}/generate-reminder
+     */
+    @RequestMapping(value = "/{id}/generate-reminder", method = RequestMethod.HEAD)
+    public ResponseEntity<Void> headGenerateReminderForAppointment(@PathVariable Long id) {
+        log.info("HEAD /appointments/{}/generate-reminder - Check rappel endpoint", id);
+        return ResponseEntity.ok().build();
+    }
+
+    /**
+     * 👁️ Prévisualise un rappel sans l'envoyer
+     * GET /api/v1/appointments/{id}/preview-reminder
+     */
+    @GetMapping("/{id}/preview-reminder")
+    public ResponseEntity<ApiResponse<Map<String, Object>>> previewReminder(
+            @PathVariable Long id) {
+        log.info("GET /appointments/{}/preview-reminder - Prévisualisation rappel", id);
+
+        try {
+            Map<String, Object> result = appointmentService.previewReminder(id);
+            
+            if ((Boolean) result.get("success")) {
+                return ResponseEntity.ok(ApiResponse.success("Rappel prévisualisé", result));
+            } else {
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                        .body(ApiResponse.error("Erreur prévisualisation", 
+                                List.of(result.get("error").toString())));
+            }
+        } catch (Exception e) {
+            log.error("Erreur prévisualisation rappel pour RDV ID: {}", id, e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(ApiResponse.error("Erreur interne", List.of(e.getMessage())));
+        }
+    }
+
+    /**
+     * 👨‍👩‍👧‍👦 Génère des rappels pour tous les rendez-vous d'un parent
+     * POST /api/v1/appointments/parent/{parentId}/generate-reminders
+     */
+    @PostMapping("/parent/{parentId}/generate-reminders")
+    public ResponseEntity<ApiResponse<Map<String, Object>>> generateRemindersForParent(
+            @PathVariable Long parentId) {
+        log.info("POST /appointments/parent/{}/generate-reminders - Génération rappels parent", parentId);
+
+        try {
+            Map<String, Object> result = appointmentService.generateRemindersForParent(parentId);
+
+            if ((Boolean) result.get("success")) {
+                return ResponseEntity.ok(ApiResponse.success("Rappels générés avec succès", result));
+            } else {
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                        .body(ApiResponse.error("Erreur génération rappels",
+                                List.of(result.get("error").toString())));
+            }
+        } catch (Exception e) {
+            log.error("Erreur génération rappels pour parent ID: {}", parentId, e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(ApiResponse.error("Erreur interne", List.of(e.getMessage())));
+        }
+    }
+
+    /**
+     * 👨‍👩‍👧‍👦 Génère des rappels pour tous les rendez-vous d'un parent (HEAD support)
+     * HEAD /api/v1/appointments/parent/{parentId}/generate-reminders
+     */
+    @RequestMapping(value = "/parent/{parentId}/generate-reminders", method = RequestMethod.HEAD)
+    public ResponseEntity<Void> headGenerateRemindersForParent(@PathVariable Long parentId) {
+        log.info("HEAD /appointments/parent/{}/generate-reminders - Check rappels parent endpoint", parentId);
+        return ResponseEntity.ok().build();
+    }
+
+    /**
+     * 🔄 Déclenche l'envoi automatique des rappels
+     * POST /api/v1/appointments/send-automatic-reminders
+     */
+    @PostMapping("/send-automatic-reminders")
+    public ResponseEntity<ApiResponse<String>> sendAutomaticReminders() {
+        log.info("POST /appointments/send-automatic-reminders - Envoi automatique");
+
+        try {
+            appointmentService.sendAutomaticReminders();
+            return ResponseEntity.ok(ApiResponse.success("Rappels automatiques envoyés", "Tâche exécutée"));
+        } catch (Exception e) {
+            log.error("Erreur envoi automatique", e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(ApiResponse.error("Erreur envoi automatique", List.of(e.getMessage())));
         }
     }
 }
