@@ -1,0 +1,3 @@
+2025-10-16 12:55:16.546 INFO  [main] c.e.h.AnomalyDetectionAIService - Modèle IA absent, entraînement initial à partir de l'Excel...
+2025-10-16 12:55:17.345 INFO  [main] com.example.healthai.AIModelTrainer - Modèle IsolationForest entraîné et sauvegardé (config par défaut)
+2025-10-16 13:00:10.619 INFO  [http-nio-8089-exec-5] c.e.h.AnomalyDetectionAIService - AI score=0.602 pour record id=10 child=2

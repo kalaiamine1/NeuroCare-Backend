@@ -1,6 +1,7 @@
 package com.BrainStack.Services;
 
 import com.BrainStack.Dto.AnomalyDetectionDTO;
+import com.BrainStack.Dto.AnomalyReportDTO;
 import com.BrainStack.Entity.HealthRecord;
 
 import java.util.List;
@@ -25,4 +26,7 @@ public interface IAnomalyDetectionService {
      * Marque une anomalie comme résolue.
      */
     void resolveAnomaly(Long anomalyId);
+
+    /** Bonus: Rapport agrégé des anomalies d'un enfant. */
+    AnomalyReportDTO getReportByChildId(int childId);
 }
